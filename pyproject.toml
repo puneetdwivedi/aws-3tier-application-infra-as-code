@@ -15,3 +15,8 @@ package = true
 [tool.setuptools.packages.find]
 where = ["."]  # list of folders that contain the packages (["."] by default)
 include = ["scripts", "utils"]
+
+[project.scripts]
+pre-deploy = "scripts.predeploy:main"
+deploy = "scripts.deploy:main"
+

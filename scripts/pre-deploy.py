@@ -31,7 +31,7 @@ def pre_deploy():
     # deploy each cft stack template file 
     root_dir = Path(base_dir)
     template_dir = root_dir / "templates"
-    print(template_dir)
+
     for file in template_dir.iterdir():
         if file.is_file():
             s3_mgr.upload_file(

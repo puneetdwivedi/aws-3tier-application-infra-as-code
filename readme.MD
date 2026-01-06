@@ -11,3 +11,11 @@ nat gateway for 2nd subnet
 nacl on 3rd subnet to only access via http and not via ssh
 
 pdw-<service>-<env>-<purpose>-<seq>
+
+- create vpc
+- create 6subnet - (1 public , 2private ) in two region
+- create internet gateway -
+- create 3 route table -for each subnet
+- create route table subnet association
+- create elastic ip for nat gateway
+- create nat gateway 

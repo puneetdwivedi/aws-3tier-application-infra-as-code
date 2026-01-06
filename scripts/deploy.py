@@ -4,6 +4,7 @@ from utils.constants import (
     AWS_SECRET_KEY,
     PDW_STACK_SANDBOX_CORE_INFRA,
     PDW_STACK_SANDBOX_CORE_INFRA_FILE_URL,
+    PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS
 )
 from utils.services.cft import CloudFormationClient, CloudFormationStack
 
@@ -16,7 +17,7 @@ def deploy():
 
     """ Deploying Cloud Formation stack """
     template_parameters = [
-
+        {"ParameterKey": "ProjectPartialsS3BucketName", "ParameterValue": PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS},
     ]
 
     cf_stack = CloudFormationStack(

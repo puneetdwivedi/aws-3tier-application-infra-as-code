@@ -9,5 +9,4 @@ Resources:
   NetWorkStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-        Description: "production grade multi tier application"
         TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/network.yml"

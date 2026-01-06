@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 3 tier production grade application infra
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: pdw-vpc-sandbox-core
+
+  # ------------------------------------ #
+  # Public Subnets                       #
+  # ------------------------------------ #
+
+  PublicSubnet1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-public-subnet-sandbox-1a-region
+
+  PublicSubnet1b:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone:  !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-public-subnet-sandbox-1b-region
+
+  # ------------------------------------ #
+  # Private Subnets                      #
+  # ------------------------------------ #
+
+  PrivateSubnet1a:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-private-subnet-sandbox-1a-region
+
+  PrivateSubnet2a:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-private-subnet-sandbox-2a-region
+
+  PrivateSubnet1b:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.5.0/24
+      AvailabilityZone:  !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-private-subnet-sandbox-1b-region
+
+  PrivateSubnet2b:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.6.0/24
+      AvailabilityZone:  !Select [1, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: pdw-private-subnet-sandbox-2b-region
+
+  # ------------------------------------ #
+  # Route Tables                         #
+  # ------------------------------------ #
+
+Outputs:
+  VpcVpcId:
+    Description: VPC ID
+    Value: !Ref Vpc
+    Export:
+      Name: "pdw-Vpc:VpcId"
+
+  VpcVpcCidr:
+    Description: VPC CIDR
+    Value: !GetAtt Vpc.CidrBlock
+    Export:
+      Name: "pdw-Vpc:VpcCidr"
+
+  PublicSubnet1a:
+    Value: !Ref PublicSubnet1a
+    Export:
+      Name: "pdw-Subnet:PublicSubnet1a"
+
+  PublicSubnet1b:
+    Value: !Ref PublicSubnet1b
+    Export:
+      Name: "pdw-Subnet:PublicSubnet1b"
+  
+  PrivateSubnet1a:
+    Value: !Ref PrivateSubnet1a
+    Export:
+      Name: "pdw-Subnet:PrivateSubnet1a"
+
+  PrivateSubnet2a:
+    Value: !Ref PrivateSubnet2a
+    Export:
+      Name: "pdw-Subnet:PrivateSubnet2a"
+
+  PrivateSubnet1b:
+    Value: !Ref PrivateSubnet1b
+    Export:
+      Name: "pdw-Subnet:PrivateSubnet1b"
+
+  PrivateSubnet2b:
+    Value: !Ref PrivateSubnet2b
+    Export:
+      Name: "pdw-Subnet:PrivateSubnet2b"
