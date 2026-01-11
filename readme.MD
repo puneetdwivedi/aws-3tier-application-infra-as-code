@@ -19,3 +19,5 @@ pdw-<service>-<env>-<purpose>-<seq>
 - create route table subnet association
 - create elastic ip for nat gateway
 - create nat gateway 
+
+

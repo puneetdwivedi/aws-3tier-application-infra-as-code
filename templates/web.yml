@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 3 tier production grade application infra
+
+Resources:
+  WebInfraS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: pdw-s3-bucket-sandbox-ui-infra
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+
+Outputs:
+  WebURL:
+    Name: 

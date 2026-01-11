@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: 3 tier production grade application infra
+Description: Network Stack
 
 Resources:
   Vpc:
