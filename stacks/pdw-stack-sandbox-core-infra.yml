@@ -6,7 +6,7 @@ Parameters:
         Type: String
 
 Resources:
-  NetWorkStack:
+  NetworkStack:
     Type: AWS::CloudFormation::Stack
     Properties:
         TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/network.yml"
