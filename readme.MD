@@ -19,5 +19,10 @@ pdw-<service>-<env>-<purpose>-<seq>
 - create route table subnet association
 - create elastic ip for nat gateway
 - create nat gateway 
+- create s3 bucket - ui infra
+- bucket policy to ui infra bucket
+- cloudfront resorce and its origin as s3
 
+
+test until this point
 
