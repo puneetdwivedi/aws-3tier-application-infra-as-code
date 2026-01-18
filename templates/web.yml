@@ -9,12 +9,11 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-
+      # PublicAccessBlockConfiguration:
+      #   BlockPublicAcls: false
+      #   BlockPublicPolicy: false
+      #   IgnorePublicAcls: false
+      #   RestrictPublicBuckets: false
 
   WebInfraS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -23,11 +22,51 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: PublicAccessForWebsite
+          - Sid: AllowCloudFrontRead
             Effect: Allow
-            Principal: "*"
+            Principal:
+              Service: "cloudfront.amazonaws.com"
             Action: s3:GetObject
             Resource: !Sub "${WebInfraS3Bucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${WebCloudFront}"
+
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: MyS3OAC
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  WebCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        DefaultCacheBehavior:
+          TargetOriginId: s3-origin-website-hoisting-enabled
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ViewerProtocolPolicy: allow-all
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: s3-origin-website-hoisting-enabled
+            DomainName: !GetAtt WebInfraS3Bucket.RegionalDomainName
+            OriginAccessControlId: !Ref CloudFrontOAC
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+
+      Tags:
+        - Key: Name
+          Value: pdw-cloudfront-sandbox-webcdn
 
 Outputs:
   WebURL:

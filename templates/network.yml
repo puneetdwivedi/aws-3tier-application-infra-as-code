@@ -167,20 +167,20 @@ Resources:
   # NAT Gateway                          #
   # ------------------------------------ #
   # HACK:: Creating Just 1 nat for saving some dollars
-  NATGateway:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NATGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnet1a
-      Tags:
-        - Key: stack
-          Value: production
+  # NATGateway:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId: !GetAtt NATGatewayEIP.AllocationId
+  #     SubnetId: !Ref PublicSubnet1a
+  #     Tags:
+  #       - Key: stack
+  #         Value: production
 
-  NATGatewayEIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-  
+  # NATGatewayEIP:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+
   # ------------------------------------ #
   # Routes                               #
   # ------------------------------------ #
@@ -191,13 +191,13 @@ Resources:
       RouteTableId: !Ref RouteTablePublicSubnet1
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateWay
-      
-  PublicRoutePrivateSubnet:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref RouteTablePrivateSubnet1
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway 
+
+  # PublicRoutePrivateSubnet:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref RouteTablePrivateSubnet1
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId: !Ref NATGateway
 
 Outputs:
   VpcVpcId:

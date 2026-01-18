@@ -22,7 +22,18 @@ pdw-<service>-<env>-<purpose>-<seq>
 - create s3 bucket - ui infra
 - bucket policy to ui infra bucket
 - cloudfront resorce and its origin as s3
+- prepare frontend application
+
+
+- prepare backend application
+- make docker image 
+- create rds aurora postgres db
+- ecs(launch type ec2) - task definition, service, alb listner, alb target group, ec2 launch template , ec2 asg, 
+ecs instance profile(required for ), ecs instance role
 
 
 test until this point
+
+
+
 
