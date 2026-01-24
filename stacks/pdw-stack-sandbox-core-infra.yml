@@ -4,7 +4,7 @@ Description: 3 tier production grade application infra
 Parameters:
   ProjectPartialsS3BucketName:
     Type: String
-  
+
   RdsMasterUserName:
     Type: String
 
@@ -20,8 +20,14 @@ Resources:
       TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/web.yml"
 
   DatabaseStack:
+    DependsOn: NetworkStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/database.yml"
       Parameters:
         RdsMasterUserName: !Ref RdsMasterUserName
+
+  ServiceStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/service.yml"

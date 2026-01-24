@@ -33,7 +33,3 @@ ecs instance profile(required for ), ecs instance role
 
 
 test until this point
-
-
-
-

@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This cloudformation template contains infra for backend infra"
+
+Resources:
+  AppCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: "pdw-cluster-sandbox-3tierapp"
+      ServiceConnectDefaults:
+        Namespace: "backend.internal"
+      Configuration:
+        ExecuteCommandConfiguration: # to allow execute command on configuration
+          Logging: "DEFAULT"
+
+  AppBackendService:
+    Type: AWS::ECS::Service
+    Properties:
+      AvailabilityZoneRebalancing: ENABLED
+      Cluster: !Ref AppCluster
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+        MaximumPercent: 200 # max of how much task can be launched at time of deployment
+        MinimumHealthyPercent: 50 # how much task should be healthy during deployment
+      DesiredCount: 2
+      EnableExecuteCommand: true
+      HealthCheckGracePeriodSeconds: 300 # It’s a grace period in seconds that ECS gives a task after it first starts before evaluating its health.
+      LaunchType: EC2
+# putting this hta dena role se dekhna h
