@@ -2,16 +2,26 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: 3 tier production grade application infra
 
 Parameters:
-    ProjectPartialsS3BucketName:
-        Type: String
+  ProjectPartialsS3BucketName:
+    Type: String
+  
+  RdsMasterUserName:
+    Type: String
 
 Resources:
   NetworkStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-        TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/network.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/network.yml"
 
   WebInfraStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-        TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/web.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/web.yml"
+
+  DatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/database.yml"
+      Parameters:
+        RdsMasterUserName: !Ref RdsMasterUserName

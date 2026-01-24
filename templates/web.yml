@@ -63,7 +63,6 @@ Resources:
             OriginAccessControlId: !Ref CloudFrontOAC
             S3OriginConfig:
               OriginAccessIdentity: ""
-
       Tags:
         - Key: Name
           Value: pdw-cloudfront-sandbox-webcdn

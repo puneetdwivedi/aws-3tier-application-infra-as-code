@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This stack contains database related resources"
+
+Parameters:
+  RdsMasterUserName:
+    Type: String
+
+Resources:
+  RDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: "rdsdbsubnetgroupname"
+      DBSubnetGroupDescription: Subnet to put the rds Db
+      SubnetIds:
+        - !ImportValue "pdw-Subnet:PrivateSubnet2a"
+        - !ImportValue "pdw-Subnet:PrivateSubnet2b"
+      Tags:
+        - Key: Name
+          Value: "pdw-dbsubnetgroup-sandbox-rdssubnetgroup"
+
+  RDSPostgresDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AutoMinorVersionUpgrade: true
+      DBSubnetGroupName: !Ref RDSDBSubnetGroup
+      Engine: postgres
+      Port: 5432
+      EngineVersion: 17.6
+      ManageMasterUserPassword: true
+      MasterUsername: !Ref RdsMasterUserName
+      VPCSecurityGroups:
+        - !Ref RDSDBSecurityGroup
+
+  RDSDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for rds db"
+      GroupName: pdw-securitygroup-sandbox-rdsdbsecuritygroup
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0 # TODO: Replace it and allow only from ec2 sg

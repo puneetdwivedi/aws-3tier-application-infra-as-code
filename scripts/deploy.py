@@ -2,9 +2,10 @@ from utils.constants import (
     AWS_ACCESS_KEY,
     AWS_DEFAULT_REGION,
     AWS_SECRET_KEY,
+    PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS,
     PDW_STACK_SANDBOX_CORE_INFRA,
     PDW_STACK_SANDBOX_CORE_INFRA_FILE_URL,
-    PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS
+    RDS_DB_USERNAME,
 )
 from utils.services.cft import CloudFormationClient, CloudFormationStack
 
@@ -17,7 +18,11 @@ def deploy():
 
     """ Deploying Cloud Formation stack """
     template_parameters = [
-        {"ParameterKey": "ProjectPartialsS3BucketName", "ParameterValue": PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS},
+        {
+            "ParameterKey": "ProjectPartialsS3BucketName",
+            "ParameterValue": PDW_S3_BUCKET_SANDBOX_PROJECT_PARTIALS,
+        },
+        {"ParameterKey": "RdsMasterUserName", "ParameterValue": RDS_DB_USERNAME},
     ]
 
     cf_stack = CloudFormationStack(
