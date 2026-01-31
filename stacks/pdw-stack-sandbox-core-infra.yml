@@ -14,20 +14,21 @@ Resources:
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/network.yml"
 
-  WebInfraStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/web.yml"
+  # WebInfraStack:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/web.yml"
 
-  DatabaseStack:
-    DependsOn: NetworkStack
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/database.yml"
-      Parameters:
-        RdsMasterUserName: !Ref RdsMasterUserName
+  # DatabaseStack:
+  #   DependsOn: NetworkStack
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/database.yml"
+  #     Parameters:
+  #       RdsMasterUserName: !Ref RdsMasterUserName
 
   ServiceStack:
+    DependsOn: NetworkStack
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "https://s3.amazonaws.com/${ProjectPartialsS3BucketName}/service.yml"

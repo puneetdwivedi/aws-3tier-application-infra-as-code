@@ -2,17 +2,104 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "This cloudformation template contains infra for backend infra"
 
 Resources:
+  # ------------------------------------ #
+  # IAM Roles                            #
+  # ------------------------------------ #
+
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ecsTaskExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: ECRRegistryPrivatePull
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: "*" # required for ecr:GetAuthorization token
+
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: myAppTaskRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  ECSEC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore  
+
+  # ------------------------------------ #
+  # ECS                                  #
+  # ------------------------------------ #
+
   AppCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: "pdw-cluster-sandbox-3tierapp"
-      ServiceConnectDefaults:
-        Namespace: "backend.internal"
+      # ServiceConnectDefaults:
+      #   Namespace: "backend.internal"
       Configuration:
         ExecuteCommandConfiguration: # to allow execute command on configuration
           Logging: "DEFAULT"
 
+  AppBackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: pdw-taskdefinition-sandbox-apptd
+      Cpu: 512
+      Memory: 1024
+      RequiresCompatibilities:
+        - EC2
+      ContainerDefinitions:
+        - Name: app-backend
+          Image: !Sub "${AWS::AccountId}.dkr.ecr.ap-south-1.amazonaws.com/pdw-ecr-sandbox-app-backend:latest"
+          Cpu: 512
+          Memory: 1024
+          PortMappings:
+            - ContainerPort: 5000
+              HostPort: 0 # Dynamic porting
+          Environment:
+            - Name: "DevName"
+              Value: "Puneet"
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole
+      TaskRoleArn: !Ref ECSTaskRole
+
   AppBackendService:
+    DependsOn:
+      - AppLoadBalancer
+      - AppLoadBalancerListner
     Type: AWS::ECS::Service
     Properties:
       AvailabilityZoneRebalancing: ENABLED
@@ -23,8 +110,113 @@ Resources:
           Rollback: true
         MaximumPercent: 200 # max of how much task can be launched at time of deployment
         MinimumHealthyPercent: 50 # how much task should be healthy during deployment
-      DesiredCount: 2
+      DesiredCount: 1
       EnableExecuteCommand: true
       HealthCheckGracePeriodSeconds: 300 # It’s a grace period in seconds that ECS gives a task after it first starts before evaluating its health.
       LaunchType: EC2
-# putting this hta dena role se dekhna h
+      LoadBalancers:
+        - TargetGroupArn: !Ref AppLoadBalancerTargetGroup
+          ContainerName: app-backend
+          ContainerPort: 5000
+      ServiceName: app-backend
+      TaskDefinition: !Ref AppBackendTaskDefinition
+      # NetworkConfiguration:
+      #   AwsvpcConfiguration:
+      #     SecurityGroups:
+      #       - "ecs-task-securitry group"
+      #     Subnets:
+      #       - !ImportValue "pdw-Subnet:PrivateSubnet1a"
+      #       - !ImportValue "pdw-Subnet:PrivateSubnet2a"
+      # ServiceConnectConfiguration: # will do this later
+      #   Enabled: true
+
+  # ------------------------------------ #
+  # Load Balancer                        #
+  # ------------------------------------ #
+
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: pdw-loadbalancer-sandbox-applb
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref AppLoadBalancerSecurityGroup
+      Subnets:
+        - !ImportValue "pdw-Subnet:PublicSubnet1a"
+        - !ImportValue "pdw-Subnet:PublicSubnet1b"
+
+  AppLoadBalancerListner:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref AppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AppLoadBalancerTargetGroup
+
+  AppLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: pdw-tg-sandbox-applb-tg
+      Port: 80
+      Protocol: HTTP
+      VpcId: !ImportValue "pdw-Vpc:VpcId"
+      TargetType: instance # EC2 launch type + bridge mode
+      HealthCheckPath: /
+
+  # ------------------------------------ #
+  # Security Groups                      #
+  # ------------------------------------ #
+
+  AppLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security Group for application load balancer"
+      GroupName: "pdw-sg-sandbox-application-load-balancer"
+      VpcId: !ImportValue "pdw-Vpc:VpcId"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0 # anywhere
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          Description: http request from anywhere to loadbalancer
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security Group for ec2"
+      GroupName: "pdw-sg-sandbox-ec2-sg"
+      VpcId: !ImportValue "pdw-Vpc:VpcId"
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref AppLoadBalancerSecurityGroup
+          IpProtocol: tcp
+          FromPort: 32768
+          ToPort: 65535
+          Description: sg to ec2 for opening ports for tasks
+
+  # ------------------------------------ #
+  # EC2                                  #
+  # ------------------------------------ #
+
+  ECSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref ECSEC2InstanceRole
+
+  # later to add autoscaling policy
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-04d84735dc914dd75
+      IamInstanceProfile: !Ref ECSInstanceProfile
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+      SubnetId: !ImportValue "pdw-Subnet:PrivateSubnet1a"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo ECS_CLUSTER="pdw-cluster-sandbox-3tierapp" >> /etc/ecs/ecs.config
